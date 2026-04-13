@@ -1,0 +1,197 @@
+#include <WiFiNINA.h>
+#include <ArduinoHttpClient.h>
+#include <Wire.h>
+#include <LiquidCrystal_I2C.h>
+#include <Keypad.h>
+
+// ===== WIFI =====
+char ssid[] = "Fairy";
+char pass[] = "1608z246<3";
+char serverAddress[] = "172.27.235.165";
+int port = 3000;
+
+WiFiClient wifi;
+HttpClient client(wifi, serverAddress, port);
+
+// ===== LCD =====
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+// ===== KEYPAD =====
+const byte numRows = 5;
+const byte numCols = 4;
+
+char keymap[numRows][numCols] = {
+  {'A','B','#','*'},
+  {'1','2','3','U'},
+  {'4','5','6','D'},
+  {'7','8','9','C'},
+  {'L','0','R','E'}
+};
+
+byte rowPins[numRows] = {10,9,8,7,6};
+byte colPins[numCols] = {2,3,4,5};
+
+Keypad myKeypad = Keypad(makeKeymap(keymap), rowPins, colPins, numRows, numCols);
+
+// ===== LOCKDOWN STATE =====
+int LD = 0;
+int lastLD = -1;
+
+unsigned long lastLockdownCheck = 0;
+const unsigned long lockdownInterval = 2000;
+
+// ===== PIN SYSTEM =====
+const char correctPIN[] = "1234";
+char enteredPIN[5];
+byte pinIndex = 0;
+
+// ===== WIFI =====
+void connectWiFi() {
+  Serial.begin(9600);
+  Serial.print("Connecting WiFi");
+
+  WiFi.begin(ssid, pass);
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("\nWiFi connected");
+}
+
+// ===== SERVER POLL =====
+void checkLockdown() {
+  client.stop();
+  client.get("/currentLockdown");
+
+  int statusCode = client.responseStatusCode();
+  String response = client.responseBody();
+
+  if (statusCode == 200) {
+    LD = response.indexOf("\"lockdown\":1") >= 0;
+  }
+}
+
+// ===== SEND UNLOCK =====
+void sendUnlock() {
+  client.stop();
+
+  client.beginRequest();
+  client.post("/setLockdown");
+  client.sendHeader("Content-Type", "application/json");
+  client.sendHeader("Content-Length", 14);
+  client.beginBody();
+  client.print("{\"lockdown\":0}");
+  client.endRequest();
+
+  int statusCode = client.responseStatusCode();
+  String response = client.responseBody();
+
+  Serial.print("Unlock status: ");
+  Serial.println(statusCode);
+
+  Serial.print("Response: ");
+  Serial.println(response);
+
+  client.responseBody(); // clear
+
+  if (statusCode == 200) {
+    lcd.clear();
+    lcd.setCursor(3,1);
+    lcd.print("UNLOCKED");
+  }
+}
+
+// ===== LCD STATES =====
+void showNormal() {
+  lcd.clear();
+  lcd.setCursor(3,0);
+  lcd.print("Operations");
+  lcd.setCursor(2,1);
+  lcd.print("In Order");
+}
+
+void showLockdown() {
+  lcd.clear();
+
+  lcd.setCursor(0,0);
+  lcd.print("LOCKDOWN");
+
+  lcd.setCursor(0,1);
+  lcd.print("PIN: ____");
+}
+
+// ===== HANDLE KEYPAD =====
+void handleKeypad() {
+  char key = myKeypad.getKey();
+      if (key != NO_KEY) {
+      Serial.print("Key detected: ");
+      Serial.println(key);
+      }
+  if (key == NO_KEY) return;
+
+  // Accept only numbers
+  if (key >= '0' && key <= '9') {
+
+  if (pinIndex < 4) {
+    enteredPIN[pinIndex] = key;
+
+    lcd.setCursor(5 + pinIndex, 1);
+    lcd.print("*");
+
+    pinIndex++;
+  }
+}
+
+    if (pinIndex == 4) {
+      enteredPIN[4] = '\0';
+
+      if (strcmp(enteredPIN, correctPIN) == 0) {
+      sendUnlock();
+      } else {
+      lcd.clear();
+      lcd.setCursor(0,0);
+      lcd.print("WRONG PIN");
+      delay(1000);
+      showLockdown();
+      }
+      // reset buffer
+      pinIndex = 0;
+      memset(enteredPIN, 0, sizeof(enteredPIN));
+
+      lcd.setCursor(2,2);
+      lcd.print("____");
+    }
+  }
+
+
+// ===== SETUP =====
+void setup() {
+  connectWiFi();
+
+  lcd.init();
+  lcd.backlight();
+
+  showNormal();
+}
+
+// ===== LOOP =====
+void loop() {
+  unsigned long now = millis();
+
+  if (now - lastLockdownCheck >= lockdownInterval) {
+    lastLockdownCheck = now;
+    checkLockdown();
+  }
+
+  if (LD != lastLD) {
+    lastLD = LD;
+
+    if (LD == 1) showLockdown();
+    else showNormal();
+  }
+
+  if (LD == 1) {
+    handleKeypad();
+  }
+}
