@@ -1,0 +1,466 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>PRISON.OS – Smart Prison System Management</title>
+<style>
+  @import url('https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700;900&family=Rajdhani:wght@400;500;600;700&family=Share+Tech+Mono&display=swap');
+
+  :root {
+    --neon-cyan: #00f5ff;
+    --neon-purple: #bf00ff;
+    --neon-blue: #0080ff;
+    --neon-green: #00ff88;
+    --bg-dark: #06080f;
+    --bg-card: #0b0f1e;
+    --bg-card2: #0d1228;
+    --text-main: #e8eeff;
+    --text-dim: #8899cc;
+    --glow-cyan: 0 0 8px #00f5ff, 0 0 20px #00f5ff55, 0 0 40px #00f5ff22;
+    --glow-purple: 0 0 8px #bf00ff, 0 0 20px #bf00ff55, 0 0 40px #bf00ff22;
+    --glow-blue: 0 0 8px #0080ff, 0 0 20px #0080ff55;
+    --glow-green: 0 0 8px #00ff88, 0 0 20px #00ff8855;
+  }
+
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+
+  body {
+    background: var(--bg-dark);
+    font-family: 'Rajdhani', sans-serif;
+    color: var(--text-main);
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+  }
+
+  /* ── POSTER WRAPPER ── */
+  .poster {
+    width: 900px;
+    background: var(--bg-dark);
+    padding: 0 0 32px 0;
+    position: relative;
+  }
+
+  /* ── HEADER ── */
+  .header {
+    background: linear-gradient(135deg, #0a1628 0%, #111b3a 50%, #0a1628 100%);
+    border-bottom: 2px solid var(--neon-cyan);
+    box-shadow: var(--glow-cyan);
+    padding: 28px 36px 24px;
+    text-align: center;
+    position: relative;
+    overflow: hidden;
+  }
+  .header::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 40px,
+      rgba(0,245,255,0.03) 40px, rgba(0,245,255,0.03) 41px
+    );
+    pointer-events: none;
+  }
+  .header-badge {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    letter-spacing: 4px;
+    color: var(--neon-cyan);
+    text-shadow: var(--glow-cyan);
+    margin-bottom: 8px;
+    text-transform: uppercase;
+  }
+  .header h1 {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 42px;
+    font-weight: 900;
+    line-height: 1.1;
+    background: linear-gradient(90deg, var(--neon-cyan), #fff 40%, var(--neon-purple));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    letter-spacing: 2px;
+  }
+  .header-sub {
+    font-family: 'Orbitron', monospace;
+    font-size: 14px;
+    letter-spacing: 6px;
+    color: var(--neon-purple);
+    text-shadow: var(--glow-purple);
+    margin-top: 6px;
+    font-weight: 400;
+  }
+  .header-course {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    color: var(--text-dim);
+    margin-top: 10px;
+    letter-spacing: 3px;
+  }
+
+  /* ── GRID ── */
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+    padding: 16px 20px;
+  }
+
+  /* ── CARD BASE ── */
+  .card {
+    background: var(--bg-card);
+    border-radius: 6px;
+    padding: 20px 22px;
+    position: relative;
+    overflow: hidden;
+    transition: transform 0.2s;
+  }
+  .card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    border-radius: 6px;
+    pointer-events: none;
+  }
+
+  /* Neon border variants */
+  .card-cyan {
+    border: 1.5px solid var(--neon-cyan);
+    box-shadow: 0 0 12px #00f5ff44, inset 0 0 20px #00f5ff08;
+  }
+  .card-purple {
+    border: 1.5px solid var(--neon-purple);
+    box-shadow: 0 0 12px #bf00ff44, inset 0 0 20px #bf00ff08;
+  }
+  .card-blue {
+    border: 1.5px solid var(--neon-blue);
+    box-shadow: 0 0 12px #0080ff44, inset 0 0 20px #0080ff08;
+  }
+  .card-green {
+    border: 1.5px solid var(--neon-green);
+    box-shadow: 0 0 12px #00ff8844, inset 0 0 20px #00ff8808;
+  }
+
+  /* ── CARD HEADER ── */
+  .card-title {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 13px;
+    font-weight: 700;
+    letter-spacing: 2px;
+    text-transform: uppercase;
+    margin-bottom: 14px;
+    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+  .card-cyan .card-title  { color: var(--neon-cyan);   border-bottom: 1px solid #00f5ff44; text-shadow: var(--glow-cyan); }
+  .card-purple .card-title { color: var(--neon-purple); border-bottom: 1px solid #bf00ff44; text-shadow: var(--glow-purple); }
+  .card-blue .card-title   { color: var(--neon-blue);   border-bottom: 1px solid #0080ff44; text-shadow: var(--glow-blue); }
+  .card-green .card-title  { color: var(--neon-green);  border-bottom: 1px solid #00ff8844; text-shadow: var(--glow-green); }
+
+  .dot {
+    width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0;
+    animation: pulse 2s infinite;
+  }
+  .card-cyan .dot  { background: var(--neon-cyan);   box-shadow: var(--glow-cyan); }
+  .card-purple .dot { background: var(--neon-purple); box-shadow: var(--glow-purple); }
+  .card-blue .dot   { background: var(--neon-blue);   box-shadow: var(--glow-blue); }
+  .card-green .dot  { background: var(--neon-green);  box-shadow: var(--glow-green); }
+
+  @keyframes pulse {
+    0%,100% { opacity: 1; } 50% { opacity: 0.4; }
+  }
+
+  /* ── BODY TEXT ── */
+  .body-text {
+    font-size: 13.5px;
+    line-height: 1.65;
+    color: #c8d4f0;
+    font-weight: 500;
+  }
+  .body-text p { margin-bottom: 8px; }
+  .body-text p:last-child { margin-bottom: 0; }
+
+  /* ── PILL TAGS ── */
+  .tags { display: flex; flex-wrap: wrap; gap: 7px; margin-top: 10px; }
+  .tag {
+    font-family: 'Share Tech Mono', monospace;
+    font-size: 11px;
+    padding: 3px 10px;
+    border-radius: 3px;
+    letter-spacing: 1px;
+  }
+  .tag-cyan   { border: 1px solid var(--neon-cyan);   color: var(--neon-cyan);   background: #00f5ff11; }
+  .tag-purple { border: 1px solid var(--neon-purple); color: var(--neon-purple); background: #bf00ff11; }
+  .tag-blue   { border: 1px solid var(--neon-blue);   color: var(--neon-blue);   background: #0080ff11; }
+  .tag-green  { border: 1px solid var(--neon-green);  color: var(--neon-green);  background: #00ff8811; }
+
+  /* ── TECH STACK GRID ── */
+  .tech-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 8px;
+    margin-top: 4px;
+  }
+  .tech-item {
+    background: #0d1228;
+    border-radius: 4px;
+    padding: 8px 11px;
+    border-left: 2px solid;
+    font-size: 12.5px;
+    font-weight: 600;
+  }
+  .tech-item.cyan   { border-color: var(--neon-cyan);   }
+  .tech-item.purple { border-color: var(--neon-purple); }
+  .tech-item.blue   { border-color: var(--neon-blue);   }
+  .tech-item.green  { border-color: var(--neon-green);  }
+  .tech-item span   { display: block; font-size: 10.5px; color: var(--text-dim); font-family: 'Share Tech Mono', monospace; font-weight: 400; margin-top: 2px; }
+
+  /* ── SENSOR ROW ── */
+  .sensor-list { display: flex; flex-direction: column; gap: 6px; }
+  .sensor-row {
+    display: flex; align-items: center; gap: 10px;
+    background: #0d1228; border-radius: 4px; padding: 7px 11px;
+    font-size: 12.5px; font-weight: 600;
+  }
+  .sensor-icon { font-size: 14px; }
+  .sensor-desc { font-size: 11px; color: var(--text-dim); font-family: 'Share Tech Mono', monospace; margin-left: auto; }
+
+  /* ── STAT BOXES ── */
+  .stats-row { display: flex; gap: 10px; margin-bottom: 12px; }
+  .stat-box {
+    flex: 1; text-align: center; background: #0d1228;
+    border-radius: 4px; padding: 10px 6px;
+  }
+  .stat-num {
+    font-family: 'Orbitron', sans-serif;
+    font-size: 22px; font-weight: 900; line-height: 1;
+  }
+  .stat-label { font-size: 10px; color: var(--text-dim); font-family: 'Share Tech Mono', monospace; margin-top: 3px; letter-spacing: 1px; }
+  .stat-cyan   .stat-num { color: var(--neon-cyan);   text-shadow: var(--glow-cyan); }
+  .stat-purple .stat-num { color: var(--neon-purple); text-shadow: var(--glow-purple); }
+  .stat-green  .stat-num { color: var(--neon-green);  text-shadow: var(--glow-green); }
+
+  /* ── AUTHOR CARD ── */
+  .author-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+  .author-item {
+    background: #0d1228; border-radius: 4px; padding: 8px 12px;
+    display: flex; align-items: center; gap: 9px;
+  }
+  .author-avatar {
+    width: 32px; height: 32px; border-radius: 50%;
+    display: flex; align-items: center; justify-content: center;
+    font-family: 'Orbitron', sans-serif; font-size: 12px; font-weight: 700;
+    flex-shrink: 0;
+  }
+  .a1 { background: #00f5ff22; border: 1px solid var(--neon-cyan);   color: var(--neon-cyan);   }
+  .a2 { background: #bf00ff22; border: 1px solid var(--neon-purple); color: var(--neon-purple); }
+  .a3 { background: #0080ff22; border: 1px solid var(--neon-blue);   color: var(--neon-blue);   }
+  .a4 { background: #00ff8822; border: 1px solid var(--neon-green);  color: var(--neon-green);  }
+  .author-name { font-size: 13px; font-weight: 700; }
+  .author-id   { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--text-dim); margin-top: 1px; }
+
+  .supervisor-box {
+    margin-top: 12px; background: #0d1228; border-radius: 4px;
+    padding: 10px 14px; border-left: 2px solid var(--neon-purple);
+  }
+  .supervisor-label { font-family: 'Share Tech Mono', monospace; font-size: 10px; color: var(--neon-purple); letter-spacing: 2px; margin-bottom: 3px; }
+  .supervisor-name  { font-size: 14px; font-weight: 700; }
+
+  /* ── ETHICS CALLOUT ── */
+  .ethics-box {
+    background: #00ff8808;
+    border: 1px dashed #00ff8844;
+    border-radius: 4px;
+    padding: 10px 14px;
+    margin-top: 10px;
+    font-size: 12.5px;
+    color: var(--neon-green);
+    font-family: 'Share Tech Mono', monospace;
+    line-height: 1.5;
+    text-shadow: var(--glow-green);
+  }
+
+  /* ── SPAN FULL ── */
+  .span-full { grid-column: 1 / -1; }
+
+  /* ── SCANLINE OVERLAY ── */
+  .scanlines {
+    position: fixed; inset: 0; pointer-events: none; z-index: 999;
+    background: repeating-linear-gradient(
+      0deg, transparent, transparent 3px, rgba(0,0,0,0.05) 3px, rgba(0,0,0,0.05) 4px
+    );
+  }
+
+  /* ── CORNER DECORATIONS ── */
+  .corner {
+    position: absolute; width: 16px; height: 16px;
+    border-color: var(--neon-cyan); border-style: solid;
+  }
+  .corner-tl { top: 4px; left: 4px; border-width: 2px 0 0 2px; }
+  .corner-tr { top: 4px; right: 4px; border-width: 2px 2px 0 0; }
+  .corner-bl { bottom: 4px; left: 4px; border-width: 0 0 2px 2px; }
+  .corner-br { bottom: 4px; right: 4px; border-width: 0 2px 2px 0; }
+
+  /* Animated scan line */
+  @keyframes scan {
+    0%   { top: -2px; opacity: 0.7; }
+    100% { top: 100%; opacity: 0; }
+  }
+  .scan-line {
+    position: absolute; left: 0; right: 0; height: 2px;
+    background: linear-gradient(90deg, transparent, var(--neon-cyan), transparent);
+    animation: scan 4s linear infinite;
+    pointer-events: none;
+  }
+</style>
+</head>
+<body>
+<div class="scanlines"></div>
+
+<div class="poster">
+
+  <!-- ══ HEADER ══ -->
+  <div class="header">
+    <div class="scan-line"></div>
+    <div class="corner corner-tl"></div>
+    <div class="corner corner-tr"></div>
+    <div class="header-badge">◈ IoT Security Research Project ◈ CST2590</div>
+    <h1>PRISON.OS</h1>
+    <div class="header-sub">Smart Prison System Management</div>
+    <div class="header-course">Internet of Things &nbsp;|&nbsp; Arduino MKR1010 &nbsp;|&nbsp; Real-Time Monitoring &nbsp;|&nbsp; Web Dashboard</div>
+  </div>
+
+  <!-- ══ MAIN GRID ══ -->
+  <div class="grid">
+
+    <!-- 1 · PROJECT DESCRIPTION -->
+    <div class="card card-cyan">
+      <div class="corner corner-tl"></div>
+      <div class="corner corner-br"></div>
+      <div class="card-title"><span class="dot"></span>Project Description</div>
+      <div class="body-text">
+        <p><strong style="color:var(--neon-cyan)">PRISON.OS</strong> is an IoT-based smart security framework for correctional facilities. It replaces manual checks and legacy systems with <em>real-time, automated monitoring</em> across access control, environmental safety, perimeter security, and utility detection.</p>
+        <p>The system connects two Arduino MKR1010 units — a <strong>Control Room</strong> node and a <strong>Patrol Guard</strong> node — through a custom-built web application dashboard backed by InfluxDB for live time-series data storage and forensic-grade event logging.</p>
+      </div>
+      <div class="ethics-box">⚠ Ethical-by-design: No cameras · No audio · No biometrics · UN Mandela Rules compliant</div>
+    </div>
+
+    <!-- 2 · TECHNOLOGIES USED -->
+    <div class="card card-purple">
+      <div class="card-title"><span class="dot"></span>Technologies Used</div>
+      <div class="tech-grid">
+        <div class="tech-item cyan">Arduino MKR1010<span>Wi-Fi MCU · x2 nodes</span></div>
+        <div class="tech-item purple">Custom Web App<span>React + Node.js dashboard</span></div>
+        <div class="tech-item blue">InfluxDB<span>Time-series data store</span></div>
+        <div class="tech-item green">HTTP / NTP<span>Data transport · Timestamps</span></div>
+        <div class="tech-item cyan">PIR + Vibration<span>Motion & perimeter sensing</span></div>
+        <div class="tech-item purple">RFID MFRC522<span>Access control · 13.56 MHz</span></div>
+        <div class="tech-item blue">DHT22 + MQ-135<span>Temp, humidity, gas quality</span></div>
+        <div class="tech-item green">Servo + Buzzer<span>Automated door & alerts</span></div>
+      </div>
+    </div>
+
+    <!-- 3 · PROBLEM STATEMENT -->
+    <div class="card card-blue">
+      <div class="card-title"><span class="dot"></span>Problem Statement</div>
+      <div class="body-text">
+        <p>Traditional correctional facilities depend on <strong>reactive</strong>, human-driven security — leaving them vulnerable to escapes, environmental hazards, and infrastructure sabotage with no audit trail.</p>
+        <p>Extreme heat, toxic gas build-up, water leaks, and power tampering go undetected until harm is done. Incident reconstruction relies on invasive surveillance or incomplete manual logs.</p>
+        <p>PRISON.OS addresses this by providing <strong style="color:var(--neon-blue)">proactive, infrastructure-focused monitoring</strong> that detects threats before they escalate — without compromising inmate dignity.</p>
+      </div>
+    </div>
+
+    <!-- 4 · EVALUATION -->
+    <div class="card card-green">
+      <div class="card-title"><span class="dot"></span>Evaluation</div>
+      <div class="stats-row">
+        <div class="stat-box stat-cyan">
+          <div class="stat-num">8</div>
+          <div class="stat-label">Sensors</div>
+        </div>
+        <div class="stat-box stat-purple">
+          <div class="stat-num">2</div>
+          <div class="stat-label">IoT Nodes</div>
+        </div>
+        <div class="stat-box stat-green">
+          <div class="stat-num">&lt;1s</div>
+          <div class="stat-label">Alert Latency</div>
+        </div>
+      </div>
+      <div class="body-text">
+        <p>The system successfully demonstrated <strong style="color:var(--neon-green)">real-time detection</strong> of motion, RFID-based access control, gas anomalies, and temperature/humidity thresholds via a live custom web dashboard.</p>
+        <p>Sensor data is timestamped via NTP, stored in InfluxDB, and rendered on the dashboard with live environmental trend graphs, security event timelines, and instant lockdown controls.</p>
+      </div>
+    </div>
+
+    <!-- 5 · KEYWORDS -->
+    <div class="card card-purple">
+      <div class="card-title"><span class="dot"></span>Keywords</div>
+      <div class="tags">
+        <span class="tag tag-cyan">IoT</span>
+        <span class="tag tag-cyan">Smart Security</span>
+        <span class="tag tag-purple">Arduino MKR1010</span>
+        <span class="tag tag-purple">RFID Access Control</span>
+        <span class="tag tag-blue">PIR Motion Detection</span>
+        <span class="tag tag-blue">Environmental Monitoring</span>
+        <span class="tag tag-green">InfluxDB</span>
+        <span class="tag tag-green">Real-Time Dashboard</span>
+        <span class="tag tag-cyan">Perimeter Security</span>
+        <span class="tag tag-purple">Ethical IoT</span>
+        <span class="tag tag-blue">NTP Timestamping</span>
+        <span class="tag tag-green">Correctional Facilities</span>
+        <span class="tag tag-cyan">HTTP Protocol</span>
+        <span class="tag tag-purple">Web Application</span>
+        <span class="tag tag-blue">Gas Detection</span>
+        <span class="tag tag-green">Privacy-by-Design</span>
+      </div>
+    </div>
+
+    <!-- 6 · AUTHOR & SUPERVISOR -->
+    <div class="card card-cyan">
+      <div class="card-title"><span class="dot"></span>Author &amp; Supervisor</div>
+      <div class="author-grid">
+        <div class="author-item">
+          <div class="author-avatar a1">DR</div>
+          <div>
+            <div class="author-name">Darenn Ramsamy</div>
+            <div class="author-id">M01036587</div>
+          </div>
+        </div>
+        <div class="author-item">
+          <div class="author-avatar a2">EA</div>
+          <div>
+            <div class="author-name">Ezekiel Adegbemle</div>
+            <div class="author-id">M00973404</div>
+          </div>
+        </div>
+        <div class="author-item">
+          <div class="author-avatar a3">ZM</div>
+          <div>
+            <div class="author-name">Zariyat Maudarbux</div>
+            <div class="author-id">M01014970</div>
+          </div>
+        </div>
+        <div class="author-item">
+          <div class="author-avatar a4">LA</div>
+          <div>
+            <div class="author-name">Lawson Archy</div>
+            <div class="author-id">M01017315</div>
+          </div>
+        </div>
+      </div>
+      <div class="supervisor-box">
+        <div class="supervisor-label">▸ Module Supervisor</div>
+        <div class="supervisor-name">CST2590 — Internet of Things</div>
+      </div>
+    </div>
+
+  </div><!-- /grid -->
+</div><!-- /poster -->
+
+</body>
+</html>
