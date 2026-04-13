@@ -1,0 +1,21 @@
+/* Gauge Styles */
+.gauge-container { position: relative; width: 100%; max-width: 200px; margin: 1.5rem auto; }
+.gauge { width: 100%; height: auto; }
+.gauge-fill { transition: stroke-dashoffset 0.5s ease, stroke 0.3s ease; }
+.gauge-value { position: absolute; bottom: 10px; left: 50%; transform: translateX(-50%); font-size: 1.5rem; font-weight: 700; }
+
+/* Live Counter */
+.live-counter { font-size: 3.5rem; font-weight: 800; text-align: center; margin: 1rem 0; background: linear-gradient(135deg, var(--accent-blue), var(--accent-purple)); -webkit-background-clip: text; -webkit-text-fill-color: transparent; animation: pulse 2s infinite; }
+@keyframes pulse { 0%, 100% { opacity: 1; } 50% { opacity: 0.8; } }
+
+/* Counter Bar */
+.counter-bar { width: 100%; height: 8px; background: #1a1a1a; border-radius: 4px; overflow: hidden; margin-top: 1rem; }
+.counter-fill { height: 100%; background: linear-gradient(90deg, var(--accent-blue), var(--accent-purple)); transition: width 0.5s ease; border-radius: 4px; }
+
+/* Motion Indicator */
+.motion-indicator { width: 100px; height: 100px; margin: 1.5rem auto; position: relative; display: flex; align-items: center; justify-content: center; }
+.motion-pulse { width: 60px; height: 60px; background: var(--accent-blue); border-radius: 50%; position: relative; }
+.motion-pulse::before, .motion-pulse::after { content: ''; position: absolute; width: 100%; height: 100%; border-radius: 50%; background: var(--accent-blue); opacity: 0; }
+.motion-pulse.active::before { animation: pulse-ring 1.5s infinite; }
+.motion-pulse.active::after { animation: pulse-ring 1.5s 0.5s infinite; }
+@keyframes pulse-ring { 0% { transform: scale(1); opacity: 0.5; } 100% { transform: scale(2); opacity: 0; } }
