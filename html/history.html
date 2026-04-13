@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Sensor History | PRISON.OS</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <style>
+        .history-container { padding: 2rem; max-width: 1400px; margin: 0 auto; }
+        .sensor-selector { display: flex; gap: 1rem; margin-bottom: 2rem; flex-wrap: wrap; }
+        .sensor-btn { padding: 0.8rem 1.5rem; background: #1a1a1a; border: 1px solid #333; border-radius: 8px; color: white; cursor: pointer; transition: all 0.3s; }
+        .sensor-btn.active { background: var(--accent-blue); border-color: var(--accent-blue); }
+        .history-table { width: 100%; background: rgba(10, 12, 16, 0.6); border-radius: 12px; overflow: hidden; }
+        .history-table table { width: 100%; border-collapse: collapse; }
+        .history-table th { background: #1a1a1a; padding: 1rem; text-align: left; font-weight: 600; border-bottom: 1px solid #333; }
+        .history-table td { padding: 0.8rem 1rem; border-bottom: 1px solid #222; }
+        .history-table tr:hover { background: rgba(255,255,255,0.02); }
+        .time-filter { display: flex; gap: 1rem; margin-bottom: 2rem; }
+        .time-filter select { padding: 0.5rem 1rem; background: #1a1a1a; border: 1px solid #333; border-radius: 6px; color: white; }
+        .value-badge { padding: 0.3rem 0.8rem; border-radius: 6px; font-weight: 600; }
+        .value-normal { background: rgba(0, 210, 255, 0.2); color: var(--accent-blue); }
+        .value-warning { background: rgba(255, 165, 0, 0.2); color: orange; }
+        .value-critical { background: rgba(255, 75, 43, 0.2); color: var(--danger); }
+    </style>
+</head>
+<body>
+    <div class="history-container">
+        <h1>Sensor Data History</h1>
+        
+        <div class="time-filter">
+            <label>Time Range:</label>
+            <select id="timeRange" onchange="loadHistory()">
+                <option value="1">Last 1 Hour</option>
+                <option value="6">Last 6 Hours</option>
+                <option value="24" selected>Last 24 Hours</option>
+                <option value="168">Last 7 Days</option>
+            </select>
+        </div>
+
+        <div class="sensor-selector">
+            <button class="sensor-btn active" onclick="selectSensor('temperature')">Temperature</button>
+            <button class="sensor-btn" onclick="selectSensor('humidity')">Humidity</button>
+            <button class="sensor-btn" onclick="selectSensor('gas')">Gas/Smoke</button>
+            <button class="sensor-btn" onclick="selectSensor('water')">Water Level</button>
+            <button class="sensor-btn" onclick="selectSensor('motion')">Motion</button>
+            <button class="sensor-btn" onclick="selectSensor('people_count')">People Count</button>
+            <button class="sensor-btn" onclick="selectSensor('door_open')">Door Status</button>
+            <button class="sensor-btn" onclick="selectSensor('fence_alert')">Fence Alert</button>
+        </div>
+
+        <div class="history-table">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Timestamp</th>
+                        <th>Sensor</th>
+                        <th>Value</th>
+                        <th>Status</th>
+                    </tr>
+                </thead>
+                <tbody id="historyBody">
+                    <tr><td colspan="4" style="text-align:center; padding: 2rem;">Loading...</td></tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <script>
+        let currentSensor = 'temperature';
+
+        function selectSensor(sensor) {
+            currentSensor = sensor;
+            document.querySelectorAll('.sensor-btn').forEach(btn => btn.classList.remove('active'));
+            event.target.classList.add('active');
+            loadHistory();
+        }
+
+        async function loadHistory() {
+            const hours = document.getElementById('timeRange').value;
+            const tbody = document.getElementById('historyBody');
+            tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 2rem;">Loading...</td></tr>';
+
+            try {
+                const res = await fetch(`/api/field-history/${currentSensor}?hours=${hours}`);
+                const data = await res.json();
+                
+                if (data.length === 0) {
+                    tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 2rem;">No data available</td></tr>';
+                    return;
+                }
+
+                tbody.innerHTML = data.map(d => {
+                    const time = new Date(d.time).toLocaleString();
+                    const status = getStatus(currentSensor, d.value);
+                    return `
+                        <tr>
+                            <td>${time}</td>
+                            <td>${currentSensor.replace('_', ' ').toUpperCase()}</td>
+                            <td>${formatValue(currentSensor, d.value)}</td>
+                            <td><span class="value-badge ${status.class}">${status.text}</span></td>
+                        </tr>
+                    `;
+                }).join('');
+            } catch (e) {
+                tbody.innerHTML = '<tr><td colspan="4" style="text-align:center; padding: 2rem; color: red;">Error loading data</td></tr>';
+            }
+        }
+
+        function formatValue(sensor, value) {
+            if (sensor === 'temperature') return `${value.toFixed(1)}°C`;
+            if (sensor === 'humidity') return `${value.toFixed(1)}%`;
+            if (sensor === 'door_open') return value == 1 ? 'OPEN' : 'CLOSED';
+            if (sensor === 'fence_alert') return value == 1 ? 'BREACH' : 'CLEAR';
+            if (sensor === 'motion') return value == 1 ? 'DETECTED' : 'NONE';
+            return value;
+        }
+
+        function getStatus(sensor, value) {
+            if (sensor === 'temperature') {
+                if (value > 40) return {class: 'value-critical', text: 'CRITICAL'};
+                if (value > 32) return {class: 'value-warning', text: 'HIGH'};
+                return {class: 'value-normal', text: 'NORMAL'};
+            }
+            if (sensor === 'humidity') {
+                if (value > 80) return {class: 'value-warning', text: 'HIGH'};
+                return {class: 'value-normal', text: 'NORMAL'};
+            }
+            if (sensor === 'gas') {
+                if (value > 500) return {class: 'value-critical', text: 'DANGER'};
+                if (value > 300) return {class: 'value-warning', text: 'WARNING'};
+                return {class: 'value-normal', text: 'SAFE'};
+            }
+            if (sensor === 'door_open' || sensor === 'fence_alert') {
+                return value == 1 ? {class: 'value-critical', text: 'ALERT'} : {class: 'value-normal', text: 'SECURE'};
+            }
+            return {class: 'value-normal', text: 'OK'};
+        }
+
+        loadHistory();
+    </script>
+</body>
+</html>
